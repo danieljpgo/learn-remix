@@ -1,51 +1,33 @@
 import type { ActionFunction } from "@remix-run/node";
-import { json, redirect } from "@remix-run/node";
+import { json } from "@remix-run/node";
+import { redirect } from "@remix-run/node";
 import { useActionData } from "@remix-run/react";
+import { z } from "zod";
 import { db } from "lib/db.server";
-
-function validateJokeName(name: string) {
-  if (name.length < 3) {
-    return `That joke's name is too short`;
-  }
-}
-
-function validateJokeContent(content: string) {
-  if (content.length < 10) {
-    return `That joke is too short`;
-  }
-}
 
 export const action: ActionFunction = async ({ request }) => {
   const form = await request.formData();
-  const name = form.get("name");
-  const content = form.get("content");
+  const schema = z.object({
+    name: z.string().min(3, { message: "That joke's name is too short" }),
+    content: z.string().min(10, { message: "That joke is too short" }),
+  });
 
-  if (typeof name !== "string" || typeof content !== "string") {
-    return json(
-      { formError: "Form not submitted correctly." },
-      { status: 400 }
-    );
-  }
+  const validation = schema.safeParse({
+    name: form.get("name"),
+    content: form.get("content"),
+  });
 
-  if (validateJokeName(name) || validateJokeContent(content)) {
+  if (!validation.success) {
     return json(
       {
-        fieldErrors: {
-          name: validateJokeName(name),
-          content: validateJokeContent(content),
-        },
-        fields: {
-          name,
-          content,
-        },
+        fieldErrors: { ...validation.error.formErrors.fieldErrors },
+        fields: { name: form.get("name"), content: form.get("content") },
       },
       { status: 400 }
     );
   }
-
-  const joke = await db.joke.create({
-    data: { name, content },
-  });
+  const { name, content } = validation.data;
+  const joke = await db.joke.create({ data: { name, content } });
 
   return redirect(`/jokes/${joke.id}`);
 };
