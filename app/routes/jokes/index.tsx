@@ -2,7 +2,7 @@ import type { Joke } from "@prisma/client";
 import type { LoaderFunction } from "@remix-run/node";
 import { json } from "@remix-run/node";
 import { Link, useLoaderData } from "@remix-run/react";
-import { db } from "lib/db.server";
+import { db } from "~/lib/db.server";
 
 export const loader: LoaderFunction = async () => {
   const count = await db.joke.count();

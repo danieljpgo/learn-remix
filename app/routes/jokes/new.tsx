@@ -3,7 +3,7 @@ import { json } from "@remix-run/node";
 import { redirect } from "@remix-run/node";
 import { useActionData } from "@remix-run/react";
 import { z } from "zod";
-import { db } from "lib/db.server";
+import { db } from "~/lib/db.server";
 
 export const action: ActionFunction = async ({ request }) => {
   const form = await request.formData();
@@ -11,7 +11,6 @@ export const action: ActionFunction = async ({ request }) => {
     name: z.string().min(3, { message: "That joke's name is too short" }),
     content: z.string().min(10, { message: "That joke is too short" }),
   });
-
   const validation = schema.safeParse({
     name: form.get("name"),
     content: form.get("content"),
@@ -21,7 +20,10 @@ export const action: ActionFunction = async ({ request }) => {
     return json(
       {
         fieldErrors: { ...validation.error.formErrors.fieldErrors },
-        fields: { name: form.get("name"), content: form.get("content") },
+        fields: {
+          name: form.get("name"),
+          content: form.get("content"),
+        },
       },
       { status: 400 }
     );

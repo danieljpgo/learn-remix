@@ -45,10 +45,7 @@ async function seed() {
   await Promise.all(
     getJokes().map((joke) => {
       return db.joke.create({
-        data: {
-          jokesterId: kody.id,
-          ...joke,
-        },
+        data: { jokesterId: kody.id, ...joke },
       });
     })
   );
