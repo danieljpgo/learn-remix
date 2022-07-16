@@ -3,7 +3,7 @@ import { json } from "@remix-run/node";
 import { useActionData, Link, useSearchParams } from "@remix-run/react";
 import { z } from "zod";
 import { db } from "~/lib/db.server";
-import { login } from "~/server/session.server";
+import { createUserSession, login } from "~/server/session.server";
 import loginCSS from "~/styles/login.css";
 
 export const links: LinksFunction = () => {
@@ -53,13 +53,9 @@ export const action: ActionFunction = async ({ request }) => {
       { status: 400 }
     );
   }
-  const { password, username, loginType } = validation.data;
-
+  const { password, username, loginType, redirectTo } = validation.data;
   switch (loginType) {
     case "login": {
-      // login to get the user *
-      // if there's no user, return the fields and a formError *
-      // if there is a user, create their session and redirect to /jokes
       const user = await login({ username, password });
       if (!user) {
         return json(
@@ -73,11 +69,7 @@ export const action: ActionFunction = async ({ request }) => {
           { status: 400 }
         );
       }
-
-      return json(
-        { fields: validation.data, formError: "Not implemented" },
-        { status: 400 }
-      );
+      return createUserSession(user.id, redirectTo ? redirectTo : "/jokes");
     }
     case "register": {
       const user = await db.user.findFirst({

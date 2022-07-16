@@ -4,8 +4,10 @@ import { redirect } from "@remix-run/node";
 import { useActionData } from "@remix-run/react";
 import { z } from "zod";
 import { db } from "~/lib/db.server";
+import { requireUserId } from "~/server/session.server";
 
 export const action: ActionFunction = async ({ request }) => {
+  const userId = await requireUserId(request);
   const form = await request.formData();
   const schema = z.object({
     name: z.string().min(3, { message: "That joke's name is too short" }),
@@ -29,7 +31,9 @@ export const action: ActionFunction = async ({ request }) => {
     );
   }
   const { name, content } = validation.data;
-  const joke = await db.joke.create({ data: { name, content } });
+  const joke = await db.joke.create({
+    data: { name, content, jokesterId: userId },
+  });
 
   return redirect(`/jokes/${joke.id}`);
 };
