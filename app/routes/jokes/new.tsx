@@ -1,10 +1,19 @@
-import type { ActionFunction } from "@remix-run/node";
+import type { ActionFunction, LoaderFunction } from "@remix-run/node";
 import { json } from "@remix-run/node";
 import { redirect } from "@remix-run/node";
-import { useActionData } from "@remix-run/react";
+import { Link, useActionData, useCatch } from "@remix-run/react";
 import { z } from "zod";
 import { db } from "~/lib/db.server";
-import { requireUserId } from "~/server/session.server";
+import { getUserId, requireUserId } from "~/server/session.server";
+
+export const loader: LoaderFunction = async ({ request }) => {
+  const userId = await getUserId(request);
+  if (!userId) {
+    //@TODO unauthorized abstration
+    throw new Response("Unauthorized", { status: 401 });
+  }
+  return json({});
+};
 
 export const action: ActionFunction = async ({ request }) => {
   const userId = await requireUserId(request);
@@ -119,4 +128,17 @@ export function ErrorBoundary() {
       Something unexpected went wrong. Sorry about that.
     </div>
   );
+}
+
+export function CatchBoundary() {
+  const caught = useCatch();
+
+  if (caught.status === 401) {
+    return (
+      <div className="error-container">
+        <p>You must be logged in to create a joke.</p>
+        <Link to="/login">Login</Link>
+      </div>
+    );
+  }
 }

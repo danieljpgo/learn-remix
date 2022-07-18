@@ -1,7 +1,7 @@
 import type { Joke } from "@prisma/client";
 import type { LoaderFunction } from "@remix-run/node";
 import { json } from "@remix-run/node";
-import { Link, useLoaderData } from "@remix-run/react";
+import { Link, useCatch, useLoaderData } from "@remix-run/react";
 import { db } from "~/lib/db.server";
 
 export const loader: LoaderFunction = async () => {
@@ -13,22 +13,39 @@ export const loader: LoaderFunction = async () => {
     select: { id: true, name: true, content: true },
   });
 
-  return json(joke);
+  if (!joke) {
+    // @TODO create a abstration to handle 404 like notFound()
+    throw new Response("No random joke found", {
+      status: 404,
+    });
+  }
+
+  return json({ joke });
 };
 
-type LoaderData = Joke;
+type LoaderData = { joke: Joke };
 
 export default function JokesIndexRoute() {
-  const joke = useLoaderData<LoaderData>();
+  const data = useLoaderData<LoaderData>();
   return (
     <div>
       <p>Here's a random joke:</p>
-      <p>{joke.content}</p>
-      <Link to={joke.id}>"{joke.name}" Permalink</Link>
+      <p>{data.joke.content}</p>
+      <Link to={data.joke.id}>"{data.joke.name}" Permalink</Link>
     </div>
   );
 }
 
 export function ErrorBoundary() {
   return <div className="error-container">I did a whoopsies.</div>;
+}
+
+export function CatchBoundary() {
+  const caught = useCatch();
+  if (caught.status === 404) {
+    return (
+      <div className="error-container">There are no jokes to display.</div>
+    );
+  }
+  throw new Error(`Unexpected caught response with status: ${caught.status}`);
 }
