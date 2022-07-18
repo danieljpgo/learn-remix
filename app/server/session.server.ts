@@ -42,6 +42,15 @@ export async function login({ username, password }: LoginForm) {
   };
 }
 
+export async function logout(request: Request) {
+  const session = await getUserSession(request);
+  return redirect("/login", {
+    headers: {
+      "Set-Cookie": await cookieSession.destroySession(session),
+    },
+  });
+}
+
 export async function createUserSession(id: User["id"], redirectTo: string) {
   const session = await cookieSession.getSession();
   session.set("userId", id);
@@ -51,6 +60,20 @@ export async function createUserSession(id: User["id"], redirectTo: string) {
       "Set-Cookie": await cookieSession.commitSession(session),
     },
   });
+}
+
+export async function getUser(request: Request) {
+  const userId = await getUserId(request);
+  if (typeof userId !== "string") return null;
+  try {
+    const user = await db.user.findUnique({
+      where: { id: userId },
+      select: { id: true, username: true },
+    });
+    return user;
+  } catch {
+    throw logout(request);
+  }
 }
 
 export function getUserSession(request: Request) {

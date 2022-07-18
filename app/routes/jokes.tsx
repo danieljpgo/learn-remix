@@ -3,25 +3,33 @@ import type { LinksFunction, LoaderFunction } from "@remix-run/node";
 import { json } from "@remix-run/node";
 import { Link, Outlet, useLoaderData } from "@remix-run/react";
 import { db } from "~/lib/db.server";
+import { getUser } from "~/server/session.server";
 import jokesCSS from "~/styles/jokes.css";
 
 export const links: LinksFunction = () => {
   return [{ rel: "stylesheet", href: jokesCSS }];
 };
 
-export const loader: LoaderFunction = async () => {
+export const loader: LoaderFunction = async ({ request }) => {
   const jokes = await db.joke.findMany({
     take: 5,
     select: { id: true, name: true },
     orderBy: { createdAt: "desc" },
   });
-  return json(jokes);
+  const user = await getUser(request);
+  return json({
+    jokes,
+    user,
+  });
 };
 
-type LoaderData = Array<Pick<Joke, "name" | "id">>;
+type LoaderData = {
+  jokes: Array<Pick<Joke, "name" | "id">>;
+  user: Awaited<ReturnType<typeof getUser>>;
+};
 
 export default function JokesRoute() {
-  const jokes = useLoaderData<LoaderData>();
+  const data = useLoaderData<LoaderData>();
 
   return (
     <div className="jokes-layout">
@@ -33,6 +41,18 @@ export default function JokesRoute() {
               <span className="logo-medium">J🤪KES</span>
             </Link>
           </h1>
+          {data.user ? (
+            <div className="user-info">
+              <span>{`Hi ${data.user.username}`}</span>
+              <form action="/logout" method="post">
+                <button type="submit" className="button">
+                  Logout
+                </button>
+              </form>
+            </div>
+          ) : (
+            <Link to="/login">Login</Link>
+          )}
         </div>
       </header>
       <main className="jokes-main">
@@ -41,7 +61,7 @@ export default function JokesRoute() {
             <Link to=".">Get a random joke</Link>
             <p>Here are a few more jokes to check out:</p>
             <ul>
-              {jokes.map((joke) => (
+              {data.jokes.map((joke) => (
                 <li key={joke.id}>
                   <Link to={joke.id}>{joke.name}</Link>
                 </li>
