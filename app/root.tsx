@@ -26,16 +26,46 @@ export const links: LinksFunction = () => {
 
 export default function App() {
   return (
+    <Document>
+      <Outlet />
+    </Document>
+  );
+}
+
+type DocumentProps = {
+  children: React.ReactNode;
+  title?: string;
+};
+function Document(props: DocumentProps) {
+  const { children, title = `Remix: So great, it's funny!` } = props;
+
+  return (
     <html lang="en">
       <head>
         <meta charSet="utf-8" />
-        <title>Remix: So great, it's funny!</title>
+        <title>{title}</title>
         <Links />
       </head>
       <body>
-        <Outlet />
+        {children}
         <LiveReload />
       </body>
     </html>
+  );
+}
+
+type ErrorBoundaryProps = {
+  error: Error;
+};
+export function ErrorBoundary(props: ErrorBoundaryProps) {
+  const { error } = props;
+
+  return (
+    <Document title="Uh-oh!">
+      <div className="error-container">
+        <h1>App Error</h1>
+        <pre>{error.message}</pre>
+      </div>
+    </Document>
   );
 }
