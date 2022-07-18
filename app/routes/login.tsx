@@ -3,7 +3,8 @@ import { json } from "@remix-run/node";
 import { useActionData, Link, useSearchParams } from "@remix-run/react";
 import { z } from "zod";
 import { db } from "~/lib/db.server";
-import { createUserSession, login, register } from "~/server/session.server";
+import { login, register } from "~/server/users.server";
+import { createUserSession } from "~/server/session.server";
 import loginCSS from "~/styles/login.css";
 
 export const links: LinksFunction = () => {
