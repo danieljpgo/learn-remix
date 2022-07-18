@@ -51,6 +51,22 @@ export async function logout(request: Request) {
   });
 }
 
+type RegisterForm = {
+  username: string;
+  password: string;
+};
+
+export async function register({ username, password }: RegisterForm) {
+  const passwordHash = await bcrypt.hash(password, 10);
+  const user = await db.user.create({
+    data: { username, passwordHash },
+  });
+  return {
+    id: user.id,
+    username: user.username,
+  };
+}
+
 export async function createUserSession(id: User["id"], redirectTo: string) {
   const session = await cookieSession.getSession();
   session.set("userId", id);

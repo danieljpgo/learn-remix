@@ -3,7 +3,7 @@ import { json } from "@remix-run/node";
 import { useActionData, Link, useSearchParams } from "@remix-run/react";
 import { z } from "zod";
 import { db } from "~/lib/db.server";
-import { createUserSession, login } from "~/server/session.server";
+import { createUserSession, login, register } from "~/server/session.server";
 import loginCSS from "~/styles/login.css";
 
 export const links: LinksFunction = () => {
@@ -84,13 +84,17 @@ export const action: ActionFunction = async ({ request }) => {
           { status: 400 }
         );
       }
-
-      // create the user
-      // create their session and redirect to /jokes
-      return json(
-        { fields: validation.data, formError: "Not implemented" },
-        { status: 400 }
-      );
+      const newUser = await register({ username, password });
+      if (!newUser) {
+        return json(
+          {
+            fields: validation.data,
+            formError: `User with username ${validation.data.username} already exists`,
+          },
+          { status: 400 }
+        );
+      }
+      return createUserSession(newUser.id, redirectTo ? redirectTo : "/jokes");
     }
     default: {
       return json(
