@@ -1,5 +1,12 @@
 import type { LinksFunction, MetaFunction } from "@remix-run/node";
-import { Links, LiveReload, Meta, Outlet, useCatch } from "@remix-run/react";
+import {
+  Links,
+  LiveReload,
+  Meta,
+  Outlet,
+  Scripts,
+  useCatch,
+} from "@remix-run/react";
 import globalLargeCSS from "~/styles/global-large.css";
 import globalMediumCSS from "~/styles/global-medium.css";
 import globalCSS from "~/styles/global.css";
@@ -62,6 +69,7 @@ function Document(props: DocumentProps) {
       </head>
       <body>
         {children}
+        <Scripts />
         <LiveReload />
       </body>
     </html>
@@ -73,6 +81,7 @@ type ErrorBoundaryProps = {
 };
 export function ErrorBoundary(props: ErrorBoundaryProps) {
   const { error } = props;
+  console.error(error);
 
   return (
     <Document title="Uh-oh!">
