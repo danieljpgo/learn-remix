@@ -1,7 +1,7 @@
-import { db } from "~/lib/db.server";
-import { getUserId, getUserSession, cookieSession } from "./session.server";
-import bcrypt from "bcryptjs";
 import { redirect } from "@remix-run/node";
+import bcrypt from "bcryptjs";
+import { db } from "~/lib/db.server";
+import { cookieSession, getUserId, getUserSession } from "./session.server";
 
 type LoginForm = {
   username: string;

@@ -1,11 +1,6 @@
 import type { User } from "@prisma/client";
 import { createCookieSessionStorage, redirect } from "@remix-run/node";
-
-// @TODO fix here
-export const sessionSecret = process.env.SESSION_SECRET;
-if (!sessionSecret) {
-  throw new Error("SESSION_SECRET must be set");
-}
+import { env } from "~/lib/env";
 
 export const cookieSession = createCookieSessionStorage({
   cookie: {
@@ -14,7 +9,7 @@ export const cookieSession = createCookieSessionStorage({
     // but that doesn't work on localhost for Safari
     // https://web.dev/when-to-use-local-https/
     secure: process.env.NODE_ENV === "production",
-    secrets: [sessionSecret],
+    secrets: [env.sessionSecret],
     sameSite: "lax",
     path: "/",
     maxAge: 60 * 60 * 24 * 30,
