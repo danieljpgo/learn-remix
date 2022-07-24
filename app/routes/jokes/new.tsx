@@ -1,6 +1,12 @@
 import type { ActionFunction, LoaderFunction } from "@remix-run/node";
 import { json, redirect } from "@remix-run/node";
-import { Form, Link, useActionData, useCatch } from "@remix-run/react";
+import {
+  Form,
+  Link,
+  useActionData,
+  useCatch,
+  useTransition,
+} from "@remix-run/react";
 import { z } from "zod";
 import { db } from "~/lib/db.server";
 import { getUserId, requireUserId } from "~/server/session.server";
@@ -14,13 +20,14 @@ export const loader: LoaderFunction = async ({ request }) => {
   return json({});
 };
 
+const schema = z.object({
+  name: z.string().min(3, { message: "That joke's name is too short" }),
+  content: z.string().min(10, { message: "That joke is too short" }),
+});
+
 export const action: ActionFunction = async ({ request }) => {
   const userId = await requireUserId(request);
   const form = await request.formData();
-  const schema = z.object({
-    name: z.string().min(3, { message: "That joke's name is too short" }),
-    content: z.string().min(10, { message: "That joke is too short" }),
-  });
   const validation = schema.safeParse({
     name: form.get("name"),
     content: form.get("content"),
@@ -60,6 +67,32 @@ type ActionData = {
 
 export default function NewJokeRoute() {
   const actionData = useActionData<ActionData>();
+  const transition = useTransition();
+
+  console.log(transition);
+
+  if (transition.submission) {
+    const validation = schema.safeParse({
+      name: transition.submission.formData.get("name"),
+      content: transition.submission.formData.get("content"),
+    });
+
+    if (validation.success) {
+      return (
+        <div>
+          <p>Here's your hilarious joke:</p>
+          <p>{validation.data.content}</p>
+          <Link to=".">{validation.data.name} Permalink</Link>
+          <Form method="post">
+            <input type="hidden" name="_method" value="delete" />
+            <button type="submit" className="button" disabled>
+              Delete
+            </button>
+          </Form>
+        </div>
+      );
+    }
+  }
 
   return (
     <div>
