@@ -1,11 +1,22 @@
-import type { ActionFunction, LinksFunction } from "@remix-run/node";
+import type {
+  ActionFunction,
+  LinksFunction,
+  MetaFunction,
+} from "@remix-run/node";
 import { json } from "@remix-run/node";
-import { useActionData, Link, useSearchParams } from "@remix-run/react";
+import { Link, useActionData, useSearchParams } from "@remix-run/react";
 import { z } from "zod";
 import { db } from "~/lib/db.server";
-import { login, register } from "~/server/users.server";
 import { createUserSession } from "~/server/session.server";
+import { login, register } from "~/server/users.server";
 import loginCSS from "~/styles/login.css";
+
+export const meta: MetaFunction = () => {
+  return {
+    title: "Remix Jokes | Login",
+    description: "Login to submit your own jokes to Remix Jokes!",
+  };
+};
 
 export const links: LinksFunction = () => {
   return [{ rel: "stylesheet", href: loginCSS }];

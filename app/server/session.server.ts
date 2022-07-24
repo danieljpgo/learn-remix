@@ -1,6 +1,6 @@
 import type { User } from "@prisma/client";
 import { createCookieSessionStorage, redirect } from "@remix-run/node";
-import { env } from "~/lib/env";
+import { env } from "~/lib/env.server";
 
 export const cookieSession = createCookieSessionStorage({
   cookie: {
