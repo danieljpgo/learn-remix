@@ -23,6 +23,11 @@ export default function IndexRouter() {
             <li>
               <Link to="jokes">Read Jokes</Link>
             </li>
+            <li>
+              <Link to="jokes.rss" reloadDocument>
+                RSS
+              </Link>
+            </li>
           </ul>
         </nav>
       </div>
